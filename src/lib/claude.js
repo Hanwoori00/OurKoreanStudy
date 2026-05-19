@@ -43,6 +43,7 @@ Rules:
   const userMessage = `Teacher's input:\n${prompt}\n\nNumber of players: ${playerCount}`;
 
   const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
+  console.log("환경변수 확인:", apiKey ? "키가 존재합니다! 앞글자: " + apiKey.substring(0, 10) : "키가 비어있습니다(undefined)!");
 
 const response = await fetch("/api/anthropic/v1/messages", {
     method: "POST",
