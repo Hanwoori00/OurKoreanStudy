@@ -19,8 +19,15 @@ export default function CreateRoom() {
     }
     setError('')
     setLoading(true)
+    
     try {
       const result = await generateCardSets({ prompt, playerCount })
+      
+      // AI 데이터 구조 검증 구조 추가 (방어적 코드)
+      if (!result || !result.sets || !Array.isArray(result.sets)) {
+        throw new Error('INVALID_SCHEMA');
+      }
+
       const docRef = await addDoc(collection(db, 'rooms'), {
         name: roomName.trim(),
         prompt,
@@ -35,9 +42,21 @@ export default function CreateRoom() {
       })
       navigate(`/host/${docRef.id}`)
     } catch (e) {
-      console.error(e)
-      setError('카드 생성 중 오류가 발생했어요. 다시 시도해주세요.')
+      console.error("Error Detail:", e);
+      
+      // 어떤 에러냐에 따라 사용자에게 친절하고 명확한 가이드 제공
+      if (e.message.includes('API_ERROR:504') || e.message.includes('API_ERROR:502')) {
+        setError('AI 응답 시간이 초과되었습니다. 조금 더 간결한 프롬프트로 다시 시도해 주세요.');
+      } else if (e.message === 'JSON_PARSE_FAILED' || e.message === 'INVALID_SCHEMA') {
+        setError('AI가 데이터 형식을 맞추지 못했습니다. 한 번 더 [방 만들기]를 눌러주세요.');
+      } else {
+        setError('카드 생성 중 오류가 발생했어요. 다시 시도해주세요.');
+      }
     } finally {
+      /* 타임아웃 현상이 발생했을 때 Vercel 서버는 죽어도 클로드는 백엔드에서 생성을 계속할 수 있습니다.
+       바로 재시도하면 클로드가 이전 요청을 처리하느라 부하가 생길 수 있으므로 
+       실패 후 재시도 버튼 활성화 전 미세한 텀을 주거나 무겁지 않게 관리하는 것이 좋습니다.
+      */
       setLoading(false)
     }
   }
@@ -106,7 +125,7 @@ export default function CreateRoom() {
           {loading ? (
             <>
               <span className="spinner" />
-              AI가 카드를 만들고 있어요...
+              AI가 카드를 만들고 있어요 (최대 10초)...
             </>
           ) : (
             '🎴 방 만들기 & 카드 생성'
