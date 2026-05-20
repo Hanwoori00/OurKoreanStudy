@@ -42,15 +42,13 @@ Rules:
 
   const userMessage = `Teacher's input:\n${prompt}\n\nNumber of players: ${playerCount}`;
 
-  const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
-  console.log("환경변수 확인:", apiKey ? "키가 존재합니다! 앞글자: " + apiKey.substring(0, 10) : "키가 비어있습니다(undefined)!");
+  const userMessage = `Teacher's input:\n${prompt}\n\nNumber of players: ${playerCount}`;
 
-const response = await fetch("/api/anthropic/v1/messages", {
+  // 주소를 백엔드 함수 주소인 '/api/chat'으로 변경합니다.
+  const response = await fetch("/api/chat", {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
+      "Content-Type": "application/json"
     },
     body: JSON.stringify({
       model: "claude-sonnet-4-20250514",
